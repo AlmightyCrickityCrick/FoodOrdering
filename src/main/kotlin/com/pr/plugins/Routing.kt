@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.request.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 fun Application.configureRouting() {
@@ -61,6 +62,21 @@ fun Application.configureRouting() {
             var clResp = ClientResponseList((0..9999).random(), orders)
             call.respond(Json.encodeToString(ClientResponseList.serializer(), clResp))
 
+        }
+        post("/rating"){
+            val data = call.receive<String>()
+            call.respond(HttpStatusCode.NoContent)
+            val rateRequestList = Json.decodeFromString(RatingRequestList.serializer(), data)
+            for (request in rateRequestList.orders){
+                println("Sending rating $request to restaurant ${request.restaurant_id}")
+                var rating = ClientRating(request.order_id, request.rating, request.estimated_waiting_time, request.waiting_time)
+                var resp : HttpResponse = client.post((restaurantList[request.restaurant_id]?.address ?: "") + "/v2/rating"){
+                    setBody(rating)
+                }
+                var currRating = Json.decodeFromString(ClientRatingResponse.serializer(), resp.body())
+                println("Received updated Rating from restaurant $currRating")
+                restaurantList[currRating.restaurant_id]?.rating = currRating.restaurant_avg_rating
+            }
         }
     }
 }

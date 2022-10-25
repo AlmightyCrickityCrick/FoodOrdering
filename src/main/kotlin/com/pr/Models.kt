@@ -32,12 +32,6 @@ data class ClientResponseList(val order_id:Int, val orders: ArrayList<ClientOrde
 @Serializable
 data class ClientOrderResponse(val restaurant_id: Int, val restaurant_address:String, val order_id: Int, val estimated_waiting_time:Int, val created_time: Long, val registered_time:Long)
 
-//What client sends to rate restaurants
-@Serializable
-data class RatingRequestList(val client_id: Int, val order_id: Int, val orders: ArrayList<RatingRequest>)
-//Rating a single restaurant from Client
-@Serializable
-data class RatingRequest(var restaurant_id: Int, val order_id: Int, val rating: Int, val estimated_waiting_time: Int, val waiting_time: Int)
 
 //Sending to Restaurant Order
 @Serializable
@@ -47,8 +41,17 @@ data class RestaurantOrder(val items: ArrayList<Int>, val priority: Int, val max
 @Serializable
 data class RestaurantOrderResponse(val restaurant_id: Int, val order_id: Int, val estimated_waiting_time: Int, val created_time: Long, val registered_time: Long)
 
+//What client sends to rate restaurants
 @Serializable
-data class RestaurantRate(val order_id: Int, val rating: Int, val estimated_waiting_time: Int, val waiting_time: Int)
+data class RatingRequestList(val client_id: Int, val order_id: Int, val orders: ArrayList<RatingRequest>)
+//Rating a single restaurant from Client
+@Serializable
+data class RatingRequest(var restaurant_id: Int, val order_id: Int, val rating: Int, val estimated_waiting_time: Int, val waiting_time: Int)
 
+//Request from to send to restaurant about rating
 @Serializable
-data class RestaurantRateResponse(val restaurant_id: Int, val restaurant_avg_rating:Float, val prepared_orders:Int)
+data class ClientRating(val order_id: Int, val rating: Int, val estimated_waiting_time: Int, val waiting_time:Int)
+
+//Response from Restaurant with rating
+@Serializable
+data class ClientRatingResponse(val restaurant_id: Int, val restaurant_avg_rating:Float, var prepared_orders:Int)
