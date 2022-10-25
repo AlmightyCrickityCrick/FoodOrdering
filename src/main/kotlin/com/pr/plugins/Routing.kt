@@ -67,18 +67,27 @@ fun Application.configureRouting() {
             val data = call.receive<String>()
             call.respond(HttpStatusCode.NoContent)
             val rateRequestList = Json.decodeFromString(RatingRequestList.serializer(), data)
+            println("Received request to rate restaurant $rateRequestList")
             for (request in rateRequestList.orders){
-                println("Sending rating $request to restaurant ${request.restaurant_id}")
+                println("Sending rating $request to restaurant ${request.restaurant_id} at ${restaurantList[request.restaurant_id]?.address ?: ""} ")
                 var rating = ClientRating(request.order_id, request.rating, request.estimated_waiting_time, request.waiting_time)
                 var resp : HttpResponse = client.post((restaurantList[request.restaurant_id]?.address ?: "") + "/v2/rating"){
-                    setBody(rating)
+                    setBody(Json.encodeToString(ClientRating.serializer(), rating))
                 }
                 var currRating = Json.decodeFromString(ClientRatingResponse.serializer(), resp.body())
                 println("Received updated Rating from restaurant $currRating")
                 restaurantList[currRating.restaurant_id]?.rating = currRating.restaurant_avg_rating
+                getAvgRating()
             }
         }
     }
+}
+
+fun getAvgRating(){
+    var avg = 0f
+    for (r in restaurantList.values) avg+= r.rating
+    avg /= restaurantList.size
+    println("System rating $avg")
 }
 
 //suspend fun sendToRestaurant(id:Int, ord:RestaurantOrder): RestaurantOrderResponse{
